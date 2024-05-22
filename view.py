@@ -16,7 +16,7 @@ class Interface(QDialog):
         self.title = QLabel("<h2>Content Downloader</h2>", alignment=QtCore.Qt.AlignCenter)
         self.enterURLLabel = QLabel("Enter URL", alignment=QtCore.Qt.AlignCenter)
         self.enterURL = QLineEdit("https://example.org")
-        self.downloadFolder = os.environ['HOME'] + "/Downloads"
+        self.downloadFolder = os.path.join(os.path.expanduser("~"), "Downloads")
         self.downloadFolderLabel = QLabel("Current Download Folder: " + self.downloadFolder, alignment=QtCore.Qt.AlignCenter)
 
         self.changeDownloadFolderButton = QPushButton("Change Download Folder")

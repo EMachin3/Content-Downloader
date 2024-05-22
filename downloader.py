@@ -3,13 +3,13 @@ import os
 
 class Downloader():
     def __init__(self):
-        self.audio_cfg = {'format': 'm4a/bestaudio/best', 'outtmpl': f"{os.environ['HOME']}/Downloads/%(title)s.%(ext)s"}
-        self.video_cfg = {'outtmpl': f"{os.environ['HOME']}/Downloads/%(title)s.%(ext)s"}
+        self.audio_cfg = {'format': 'm4a/bestaudio/best', 'outtmpl': os.path.join(os.path.expanduser("~"), "Downloads", "%(title)s.%(ext)s")}
+        self.video_cfg = {'outtmpl': os.path.join(os.path.expanduser("~"), "Downloads", "%(title)s.%(ext)s")}
     def set_url(self, URL):
         self.URL = URL
     def change_download_dir(self, directory):
-        self.audio_cfg['outtmpl'] = directory + "/%(title)s.%(ext)s"
-        self.video_cfg['outtmpl'] = directory + "/%(title)s.%(ext)s"
+        self.audio_cfg['outtmpl'] = os.path.join(directory, "%(title)s.%(ext)s")
+        self.video_cfg['outtmpl'] = os.path.join(directory, "%(title)s.%(ext)s")
     def download_audio(self):
         with YoutubeDL(self.audio_cfg) as ydl:
             try:
