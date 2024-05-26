@@ -22,6 +22,9 @@ class Interface(QDialog):
 
         self.changeDownloadFolderButton = QPushButton("Change Download Folder")
         self.progressBar = QProgressBar()
+        self.progressBar.hide() # start out with progress hidden
+        self.downloadFinishedLabel = QLabel("Download finished!", alignment=QtCore.Qt.AlignCenter)
+        self.downloadFinishedLabel.hide()
         self.goButton = QPushButton("Go!")
 
         # Create downloader and associated interface widgets
@@ -36,8 +39,14 @@ class Interface(QDialog):
         # Connect signals to slots
         self.goButton.clicked.connect(self.download)
         self.goButton.clicked.connect(self.disableGo)
+        self.goButton.clicked.connect(self.progressBar.show)
+        self.goButton.clicked.connect(self.downloadFinishedLabel.hide)
         self.changeDownloadFolderButton.clicked.connect(self.changeDownloadFolder)
+        self.changeDownloadFolderButton.clicked.connect(self.progressBar.hide)
+        self.changeDownloadFolderButton.clicked.connect(self.downloadFinishedLabel.hide)
         buttonGroup.buttonToggled.connect(self.changeDownloadType)
+        buttonGroup.buttonToggled.connect(self.progressBar.hide)
+        buttonGroup.buttonToggled.connect(self.downloadFinishedLabel.hide)
 
         # Add widgets to the layout
         layout.addWidget(self.title)
@@ -48,6 +57,7 @@ class Interface(QDialog):
         layout.addWidget(self.video)
         layout.addWidget(self.audio)
         layout.addWidget(self.progressBar)
+        layout.addWidget(self.downloadFinishedLabel)
         layout.addWidget(self.goButton)
 
     def download(self):
@@ -59,16 +69,17 @@ class Interface(QDialog):
             self.thread.started.connect(self.worker.download_video)
         else:
             self.thread.started.connect(self.worker.download_audio)
-        #self.thread.started.connect(self.disableGo)
         self.worker.progress.connect(self.progressBar.setValue)
-        self.logger.downloadError.connect(self.alert_download_failed)
+        self.worker.downloadSuccessful.connect(self.downloadFinishedLabel.show)
+        self.logger.downloadError.connect(self.alertDownloadFailed)
+        self.logger.downloadError.connect(self.progressBar.hide)
+        self.logger.alreadyDownloaded.connect(self.alertAlreadyDownloaded)
+        self.logger.alreadyDownloaded.connect(self.progressBar.hide)
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.finished.connect(self.enableGo)
         self.thread.start()
-        #TODO: need to add logic to lock out buttons or queue downloads or something
-        #   current implementation probably supports multiple downloads, test that
 
     def changeDownloadFolder(self):
         newFolder = QFileDialog.getExistingDirectory(self, caption="Select a folder")
@@ -91,11 +102,15 @@ class Interface(QDialog):
     def enableGo(self):
         self.goButton.setEnabled(True)
 
-    '''
-    TODO: add more detailed error info from stdout if possible
-    also this currently is not used lol
-    '''
-    def alert_download_failed(self, msg):
+    def alertAlreadyDownloaded(self):
+        alert = QMessageBox()
+        alert.setIcon(QMessageBox.Information)
+        alert.setText("File has already been downloaded.")
+        alert.setWindowTitle("Download failed")
+        alert.setStandardButtons(QMessageBox.Ok)
+        alert.exec()
+
+    def alertDownloadFailed(self, msg):
         error = QMessageBox()
         error.setIcon(QMessageBox.Critical)
         error.setText("Error: Download failed.\n\nMake sure the URL is correct and you are allowed to access the content.\n\nClick \"Show Details\" to see detailed error information.")

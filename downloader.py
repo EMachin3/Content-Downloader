@@ -5,6 +5,7 @@ from yt_dlp import YoutubeDL
 
 class DownloadWorker(QObject):
     finished = QtCore.Signal()
+    downloadSuccessful = QtCore.Signal()
     progress = QtCore.Signal(float)
     def __init__(self, URL, downloadFolder, logger):
         super().__init__()
@@ -38,6 +39,7 @@ class DownloadWorker(QObject):
                               #report it to the user using the logger
                 return 1
             else:
+                self.downloadSuccessful.emit()
                 return 0
             finally:
                 self.finished.emit()
@@ -49,6 +51,7 @@ class DownloadWorker(QObject):
             except Exception: 
                 return 1
             else:
+                self.downloadSuccessful.emit()
                 return 0
             finally:
                 self.finished.emit()
